@@ -1,0 +1,7 @@
+.idea
+target
+broker-store-api/target
+hdfs-broker-store/target
+*.iml
+broker-store-api/*.iml
+hdfs-broker-store/*.iml

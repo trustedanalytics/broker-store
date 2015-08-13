@@ -1,0 +1,17 @@
+cf:
+  catalog:
+    serviceName: fake_name
+    serviceId: fake_id
+    serviceDescription: fake_desc
+    baseId: fake_baseID
+    plans:
+      - id: fake_plan_id
+        name: fake_name
+        description: fake_desc
+        free: true
+      - id: fake_plan_id2
+        name: fake_name2
+        description: fake_desc2
+        free: false
+    metadata:
+      imageUrl: fake_image
