@@ -28,6 +28,8 @@ public interface HdfsClient {
 
     void createDir(String path) throws IOException;
 
+    void createEncryptedDir(String path) throws IOException;
+
     void createEmptyFile(String path) throws IOException;
 
     Optional<byte[]> getPathAttr(String path, String name) throws IOException;

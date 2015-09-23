@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
 
-
 /**
  * This test assume building classpath in following order : The test-classes directory, The classes
  * directory, The project dependencies, Additional classpath elements
@@ -52,7 +51,6 @@ public class ChrootedHdfsClientTest {
 
     private static final String rootDir = "/junit";
 
-
     @BeforeClass
     public static void initialize() throws IOException {
         File baseDir = new File("./target/hdfs/" + "testName").getAbsoluteFile();
@@ -61,7 +59,7 @@ public class ChrootedHdfsClientTest {
         conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, baseDir.getAbsolutePath());
         MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
         cluster = builder.build();
-
+        cluster.waitClusterUp();
     }
 
     @Before
@@ -155,7 +153,7 @@ public class ChrootedHdfsClientTest {
         hdfs.createDir("/testDir/second");
         hdfs.addPathAttr("/testDir/second", "user.test", "junit".getBytes());
         assertThat(fs.getXAttr(hdfs.getChrootedPath("/testDir/second"), "user.test"),
-            equalTo("junit".getBytes()));
+                equalTo("junit".getBytes()));
     }
 
     @Test(expected = HadoopIllegalArgumentException.class)
@@ -163,7 +161,6 @@ public class ChrootedHdfsClientTest {
         hdfs.createDir("/testDir");
         hdfs.addPathAttr("/testDir", "test", "junit".getBytes());
     }
-
 
     @Test
     public void testGetPathAttr_existingAttribute_returnsValue() throws Exception {

@@ -16,14 +16,18 @@
 package org.trustedanalytics.cfbroker.store.hdfs.service;
 
 import com.google.common.base.Preconditions;
-import org.trustedanalytics.cfbroker.store.hdfs.helper.DirHelper;
+import org.apache.hadoop.crypto.key.KeyProvider;
+import org.apache.hadoop.crypto.key.KeyProviderFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.client.HdfsAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.trustedanalytics.cfbroker.store.hdfs.helper.DirHelper;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -91,6 +95,21 @@ public class ChrootedHdfsClient implements HdfsClient {
     }
 
     @Override
+    public void createEncryptedDir(String relativePath) throws IOException {
+        Path path = getChrootedPath(relativePath);
+        fs.mkdirs(path);
+        try {
+            createEncryptionZoneKey(relativePath);
+        } catch (NoSuchAlgorithmException e) {
+            fs.delete(path, false);
+            throw new IOException("Error while creating encryption dir: " + relativePath, e);
+        }
+
+        HdfsAdmin admin = new HdfsAdmin(fs.getUri(), fs.getConf());
+        admin.createEncryptionZone(path, relativePath);
+    }
+
+    @Override
     public void createEmptyFile(String relativePath) throws IOException {
         Path path = getChrootedPath(relativePath);
 
@@ -103,6 +122,15 @@ public class ChrootedHdfsClient implements HdfsClient {
         Path path = getChrootedPath(relativePath);
         if (!fs.delete(path, true))
             throw new IOException("Error while deleting path : " + path);
+    }
+
+    void createEncryptionZoneKey(String key) throws NoSuchAlgorithmException, IOException {
+        final KeyProvider.Options options = KeyProvider.options(fs.getConf());
+        options.setDescription(key);
+        options.setBitLength(128);
+
+        KeyProvider keyProvider = KeyProviderFactory.getProviders(fs.getConf()).get(0);
+        keyProvider.createKey(key, options);
     }
 
     String getNormalizedRootDir(String dir) {
