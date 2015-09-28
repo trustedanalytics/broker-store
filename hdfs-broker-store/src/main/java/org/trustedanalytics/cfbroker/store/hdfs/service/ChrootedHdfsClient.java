@@ -127,7 +127,7 @@ public class ChrootedHdfsClient implements HdfsClient {
     void createEncryptionZoneKey(String key) throws NoSuchAlgorithmException, IOException {
         final KeyProvider.Options options = KeyProvider.options(fs.getConf());
         options.setDescription(key);
-        options.setBitLength(128);
+        options.setBitLength(256);
 
         KeyProvider keyProvider = KeyProviderFactory.getProviders(fs.getConf()).get(0);
         keyProvider.createKey(key, options);
