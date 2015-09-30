@@ -129,7 +129,11 @@ public class ChrootedHdfsClient implements HdfsClient {
         options.setDescription(key);
         options.setBitLength(256);
 
-        KeyProvider keyProvider = KeyProviderFactory.getProviders(fs.getConf()).get(0);
+        List<KeyProvider> providers = KeyProviderFactory.getProviders(fs.getConf());
+        Preconditions.checkArgument(providers.size() > 0,
+            "KMS configuration required for creating encryption zones");
+
+        KeyProvider keyProvider = providers.get(0);
         keyProvider.createKey(key, options);
     }
 
