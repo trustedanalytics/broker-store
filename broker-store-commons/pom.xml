@@ -8,8 +8,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>broker-store-commons</artifactId>
     <properties>
-        <brokerVersion>2.4.2</brokerVersion>
-        <brokerTestVersion>2.4.1</brokerTestVersion>
+        <brokerVersion>2.6.0</brokerVersion>
+        <brokerTestVersion>2.6.0</brokerTestVersion>
     </properties>
     <dependencies>
         <dependency>
