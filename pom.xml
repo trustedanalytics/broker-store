@@ -5,11 +5,11 @@
     <groupId>org.trustedanalytics.servicebroker.repository</groupId>
     <artifactId>broker-store</artifactId>
 
-    <version>0.4.9-SNAPSHOT</version>
+    <version>0.4.9</version>
     <parent>
         <groupId>org.trustedanalytics</groupId>
         <artifactId>project-template</artifactId>
-        <version>0.4.3</version>
+        <version>0.4.4</version>
     </parent>
 
     <modules>
