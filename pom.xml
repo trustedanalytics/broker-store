@@ -5,7 +5,7 @@
     <groupId>org.trustedanalytics.servicebroker.repository</groupId>
     <artifactId>broker-store</artifactId>
 
-    <version>0.4.9</version>
+    <version>0.5.0</version>
     <parent>
         <groupId>org.trustedanalytics</groupId>
         <artifactId>project-template</artifactId>
@@ -16,6 +16,7 @@
         <module>broker-store-commons</module>
         <module>hdfs-broker-store</module>
         <module>zookeeper-broker-store</module>
+        <module>sql-broker-store</module>
     </modules>
     <build>
       <plugins>
