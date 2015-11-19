@@ -14,11 +14,17 @@
         <jacoco-measurement-lines>0.6458</jacoco-measurement-lines>
         <jacoco-measurement-classes>1.0000</jacoco-measurement-classes>
     </properties>
+    <repositories>
+        <repository>
+            <id>cloudera</id>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>org.trustedanalytics.servicebroker.repository</groupId>
             <artifactId>broker-store-commons</artifactId>
-            <version>0.4.3</version>
+            <version>0.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
