@@ -18,7 +18,7 @@
         <dependency>
             <groupId>org.trustedanalytics.servicebroker.repository</groupId>
             <artifactId>broker-store-commons</artifactId>
-            <version>0.4.3</version>
+            <version>0.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
