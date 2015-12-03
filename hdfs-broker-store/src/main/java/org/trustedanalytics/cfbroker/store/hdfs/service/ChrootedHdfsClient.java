@@ -21,7 +21,7 @@ import org.apache.hadoop.crypto.key.KeyProviderFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.client.HdfsAdmin;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.trustedanalytics.cfbroker.store.hdfs.helper.DirHelper;
@@ -95,18 +95,22 @@ public class ChrootedHdfsClient implements HdfsClient {
     }
 
     @Override
-    public void createEncryptedDir(String relativePath) throws IOException {
+    public void createEncryptedZone(String relativePath) throws IOException {
         Path path = getChrootedPath(relativePath);
-        fs.mkdirs(path);
-        try {
-            createEncryptionZoneKey(relativePath);
-        } catch (NoSuchAlgorithmException e) {
-            fs.delete(path, false);
-            throw new IOException("Error while creating encryption dir: " + relativePath, e);
-        }
+        if(fs.exists(path)){
+            try {
+                createEncryptionZoneKey(relativePath);
+            } catch (NoSuchAlgorithmException e) {
+                fs.delete(path, true);
+                throw new IOException("Error while creating encryption dir: " + relativePath, e);
+            }
 
-        HdfsAdmin admin = new HdfsAdmin(fs.getUri(), fs.getConf());
-        admin.createEncryptionZone(path, relativePath);
+            DistributedFileSystem dfs = (DistributedFileSystem)fs;
+            dfs.createEncryptionZone(path, relativePath);
+        }
+        else {
+            throw new IOException("Directory not exists : " + relativePath);
+        }
     }
 
     @Override
