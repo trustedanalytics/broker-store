@@ -58,7 +58,7 @@ public class ZookeeperStore<T> implements BrokerStore<T> {
         try {
             data = zookeeperClient.getZNode(path);
         } catch (IOException e) {
-            LOGGER.info(e.getMessage(), e);
+            LOGGER.debug(e.getMessage(), e);
             return Optional.empty();
         }
         return Optional.ofNullable(deserializer.deserialize(data));
