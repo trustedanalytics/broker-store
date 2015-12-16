@@ -3,7 +3,7 @@
     <parent>
         <artifactId>broker-store</artifactId>
         <groupId>org.trustedanalytics.servicebroker.repository</groupId>
-        <version>0.5.3</version>
+        <version>0.5.4</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>broker-store-commons</artifactId>
@@ -12,10 +12,37 @@
         <brokerTestVersion>2.6.0</brokerTestVersion>
         <jacoco-measurement-instructions>0.8867</jacoco-measurement-instructions>
         <jacoco-measurement-branches>0.8333</jacoco-measurement-branches>
-        <jacoco-measurement-lines>0.8707</jacoco-measurement-lines>
-        <jacoco-measurement-classes>0.8181</jacoco-measurement-classes>
+        <jacoco-measurement-lines>0.8685</jacoco-measurement-lines>
+        <jacoco-measurement-classes>0.7142</jacoco-measurement-classes>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.servlet.jsp</groupId>
+                    <artifactId>jsp-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>tomcat</groupId>
+                    <artifactId>jasper-runtime</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>tomcat</groupId>
+                    <artifactId>jasper-compiler</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.cloudfoundry</groupId>
             <artifactId>spring-boot-cf-service-broker</artifactId>

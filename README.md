@@ -90,3 +90,25 @@ BrokerStore<MyClass> store = new ZookeeperStore<>(zookeeperClient,
     JSONSerDeFactory.getInstance().getSerializer(),
     JSONSerDeFactory.getInstance().getDeserializer(MyClass.class));
 ```
+
+### zip configurations
+
+HadoopZipConfiguration can be used in broker to obtain hadoop configuration or credentials based on encoded zip file.
+
+Examples:
+
+Get as hadoop configuration:
+```
+Configuration hadoopConfiguration =
+        HadoopZipConfiguration.createHadoopZipConfiguration(encodedZip).getAsHadoopConfiguration();
+```
+Get as key-value map:
+```
+Map<String, String> map = HadoopZipConfiguration.createHadoopZipConfiguration(encodedZip).getAsParameterMap()
+```
+
+Get broker credentials:
+```
+ImmutableMap credentials =
+        HadoopZipConfiguration.createHadoopZipConfiguration(encodedZip).getBrokerCredentials();
+```
