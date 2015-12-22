@@ -15,8 +15,6 @@
  */
 package org.trustedanalytics.cfbroker.store.sql.service.postgres;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.trustedanalytics.cfbroker.store.sql.service.SqlConnectionUtils;
 import org.trustedanalytics.cfbroker.store.sql.service.SqlDatabaseClient;
 
@@ -24,12 +22,10 @@ import java.sql.SQLException;
 
 public class PostgreSqlClient extends SqlDatabaseClient {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSqlClient.class);
-
-  private final String REVOKE_ALL_ON_DATABASE = "REVOKE ALL ON DATABASE %s FROM PUBLIC";
-  private final String SET_DATABASE_OWNER = "ALTER DATABASE %s OWNER TO %s";
-  private final String CREATE_ROLE = "CREATE ROLE %s PASSWORD '%s' LOGIN";
-  private final String DROP_ROLE = "DROP ROLE %s";
+  private static final String REVOKE_ALL_ON_DATABASE = "REVOKE ALL ON DATABASE %s FROM PUBLIC";
+  private static final String SET_DATABASE_OWNER = "ALTER DATABASE %s OWNER TO %s";
+  private static final String CREATE_ROLE = "CREATE ROLE %s PASSWORD '%s' LOGIN";
+  private static final String DROP_ROLE = "DROP ROLE %s";
 
   public PostgreSqlClient(SqlConnectionUtils connection) throws SQLException {
     super(connection);

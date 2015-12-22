@@ -15,8 +15,6 @@
  */
 package org.trustedanalytics.cfbroker.store.sql.service.mysql;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.trustedanalytics.cfbroker.store.sql.service.SqlConnectionUtils;
 import org.trustedanalytics.cfbroker.store.sql.service.SqlDatabaseClient;
 
@@ -24,11 +22,9 @@ import java.sql.SQLException;
 
 public class MySqlClient extends SqlDatabaseClient {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MySqlClient.class);
-
-  private final String GRANT_PRIVILIGES = "GRANT ALL ON %s.* to '%s'@'%%'";
-  private final String CREATE_USER = "CREATE USER %s IDENTIFIED BY '%s'";
-  private final String DROP_USER = "DROP USER %s";
+  private static final String GRANT_PRIVILIGES = "GRANT ALL ON %s.* to '%s'@'%%'";
+  private static final String CREATE_USER = "CREATE USER %s IDENTIFIED BY '%s'";
+  private static final String DROP_USER = "DROP USER %s";
 
   public MySqlClient(SqlConnectionUtils connection) throws SQLException {
     super(connection);
