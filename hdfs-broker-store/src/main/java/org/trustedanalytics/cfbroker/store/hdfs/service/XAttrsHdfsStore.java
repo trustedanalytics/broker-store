@@ -15,12 +15,14 @@
  */
 package org.trustedanalytics.cfbroker.store.hdfs.service;
 
-import org.trustedanalytics.cfbroker.store.api.BrokerStore;
-import org.trustedanalytics.cfbroker.store.api.Location;
-import org.trustedanalytics.cfbroker.store.serialization.RepositoryDeserializer;
-import org.trustedanalytics.cfbroker.store.serialization.RepositorySerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.trustedanalytics.cfbroker.store.api.BrokerStore;
+import org.trustedanalytics.cfbroker.store.api.Location;
+import org.trustedanalytics.cfbroker.store.hdfs.helper.DirHelper;
+import org.trustedanalytics.cfbroker.store.helper.LoggerHelper;
+import org.trustedanalytics.cfbroker.store.serialization.RepositoryDeserializer;
+import org.trustedanalytics.cfbroker.store.serialization.RepositorySerializer;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -37,25 +39,29 @@ public class XAttrsHdfsStore<T> implements BrokerStore<T> {
 
     private final String attributeName;
 
+    private final String metadataPath;
+
     public XAttrsHdfsStore(HdfsClient hdfsClient, RepositorySerializer<T> serializer,
-        RepositoryDeserializer<T> deserializer, String attributeName) {
+        RepositoryDeserializer<T> deserializer, String attributeName, String metadataPath) throws IOException {
 
         this.serializer = serializer;
         this.deserializer = deserializer;
         this.hdfsClient = hdfsClient;
         this.attributeName = attributeName;
+        this.metadataPath = metadataPath;
     }
 
     @Override
     public void save(Location location, T t) throws IOException {
-        String path = location.getPath();
+        String path = getPath(location);
+        LOGGER.info(LoggerHelper.getParamsAsString("Saving instance in directory", path));
         hdfsClient.createDir(path);
         hdfsClient.addPathAttr(path, attributeName, serializer.serialize(t));
     }
 
     @Override
     public Optional<T> getById(Location location) throws IOException {
-        String path = location.getPath();
+        String path = getPath(location);
         LOGGER.info("getById(" + path + ")");
         Optional<byte[]> data = hdfsClient.getPathAttr(path, attributeName);
         return data.isPresent()
@@ -66,8 +72,13 @@ public class XAttrsHdfsStore<T> implements BrokerStore<T> {
     public Optional<T> deleteById(Location location) throws IOException {
         Optional<T> instance = getById(location);
         if (instance.isPresent()) {
-            hdfsClient.deleteById(location.getPath());
+            hdfsClient.deleteById(getPath(location));
         }
         return instance;
     }
+
+    private String getPath(Location location) {
+        return DirHelper.concat(metadataPath, location.getPath());
+    }
+
 }

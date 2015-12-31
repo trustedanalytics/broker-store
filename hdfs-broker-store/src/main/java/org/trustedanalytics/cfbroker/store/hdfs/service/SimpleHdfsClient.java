@@ -32,36 +32,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class ChrootedHdfsClient implements HdfsClient {
+public class SimpleHdfsClient implements HdfsClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChrootedHdfsClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleHdfsClient.class);
 
     private final FileSystem fs;
 
-    private final String rootDir;
-
-    public ChrootedHdfsClient(FileSystem fs, String rootDir)
-            throws IOException {
+    public SimpleHdfsClient(FileSystem fs) {
         this.fs = fs;
-        this.rootDir = getNormalizedRootDir(rootDir);
-        initialize(fs, rootDir);
-    }
-
-    private void initialize(FileSystem fs, String rootDir) throws IOException {
-        Preconditions.checkState(fs.exists(new Path(rootDir)), "Root directory : " + rootDir + " doesn't exists");
     }
 
     @Override
     public void addPathAttr(String path, String name, byte[] value) throws IOException {
-        fs.setXAttr(getChrootedPath(path), name, value);
+        fs.setXAttr(getNormalizedPath(path), name, value);
     }
 
     @Override
     public Optional<byte[]> getPathAttr(String path, String name) throws IOException {
-        return getChrootedPathAttr(getChrootedPath(path), name);
+        return getPathAttr(getNormalizedPath(path), name);
     }
 
-    private Optional<byte[]> getChrootedPathAttr(Path path, String name) throws IOException {
+    private Optional<byte[]> getPathAttr(Path path, String name) throws IOException {
         LOGGER.info("Checking attributes on path " + path);
         if (fs.exists(path))
             return Optional.ofNullable(fs.getXAttrs(path).get(name));
@@ -73,13 +64,13 @@ public class ChrootedHdfsClient implements HdfsClient {
             throws IOException {
 
         List<byte[]> attrs = new ArrayList<>();
-        Path chrootedPath = getChrootedPath(path);
-        if (!fs.isDirectory(chrootedPath))
+        Path p = getNormalizedPath(path);
+        if (!fs.isDirectory(p))
             throw new IllegalArgumentException("Path : " + path + ", should be a directory");
 
-        FileStatus[] listStatus = fs.listStatus(chrootedPath);
+        FileStatus[] listStatus = fs.listStatus(p);
         for (FileStatus status : listStatus) {
-            Optional<byte[]> pathAttr = getChrootedPathAttr(status.getPath(), attrName);
+            Optional<byte[]> pathAttr = getPathAttr(status.getPath(), attrName);
             if (pathAttr.isPresent())
                 attrs.add(pathAttr.get());
         }
@@ -87,45 +78,56 @@ public class ChrootedHdfsClient implements HdfsClient {
     }
 
     @Override
-    public void createDir(String relativePath) throws IOException {
-        Path path = getChrootedPath(relativePath);
-
-        if (!fs.mkdirs(path) && !fs.exists(path))
-            throw new IOException("Error while creating dirs : " + path);
+    public String getRootDir() {
+        return "/";
     }
 
     @Override
-    public void createEncryptedZone(String relativePath) throws IOException {
-        Path path = getChrootedPath(relativePath);
-        if(fs.exists(path)){
+    public void createDir(String path) throws IOException {
+        Path p = getNormalizedPath(path);
+        LOGGER.info(String.format("Creating directory: %s", p));
+
+        if(fs.exists(p)) {
+            LOGGER.info("Path already exists, nothing to create: " + p);
+            return;
+        }
+
+        fs.mkdirs(p);
+        if (!fs.exists(p))
+            throw new IOException("The dir has not ben created: " + p);
+    }
+
+    @Override
+    public void createEncryptedZone(String path) throws IOException {
+        Path p = getNormalizedPath(path);
+        if(fs.exists(p)){
             try {
-                createEncryptionZoneKey(relativePath);
+                createEncryptionZoneKey(path);
             } catch (NoSuchAlgorithmException e) {
-                fs.delete(path, true);
-                throw new IOException("Error while creating encryption dir: " + relativePath, e);
+                fs.delete(p, true);
+                throw new IOException("Error while creating encryption dir: " + p, e);
             }
 
             DistributedFileSystem dfs = (DistributedFileSystem)fs;
-            dfs.createEncryptionZone(path, relativePath);
+            dfs.createEncryptionZone(p, path);
         }
         else {
-            throw new IOException("Directory not exists : " + relativePath);
+            throw new IOException("Directory not exists : " + p);
         }
     }
 
     @Override
-    public void createEmptyFile(String relativePath) throws IOException {
-        Path path = getChrootedPath(relativePath);
-
-        if (!fs.createNewFile(path) && !fs.exists(path))
-            throw new IOException("Error while creating file : " + path);
+    public void createEmptyFile(String path) throws IOException {
+        Path p = getNormalizedPath(path);
+        if (!fs.createNewFile(p) && !fs.exists(p))
+            throw new IOException("Error while creating file : " + p);
     }
 
     @Override
-    public void deleteById(String relativePath) throws IOException {
-        Path path = getChrootedPath(relativePath);
-        if (!fs.delete(path, true))
-            throw new IOException("Error while deleting path : " + path);
+    public void deleteById(String path) throws IOException {
+        Path p = getNormalizedPath(path);
+        if (!fs.delete(p, true))
+            throw new IOException("Error while deleting path : " + p);
     }
 
     void createEncryptionZoneKey(String key) throws NoSuchAlgorithmException, IOException {
@@ -140,20 +142,7 @@ public class ChrootedHdfsClient implements HdfsClient {
         keyProvider.createKey(key, options);
     }
 
-    String getNormalizedRootDir(String dir) {
-        Preconditions.checkArgument(dir.startsWith("/"), "Root dir must starts with \"/\"");
-        return DirHelper.removeTrailingSlashes(dir);
+    private Path getNormalizedPath(String dir) {
+        return new Path(DirHelper.addLeadingSlash(DirHelper.removeLeadingSlashes(dir)));
     }
-
-    Path getChrootedPath(String relativePath) {
-        if (relativePath.startsWith("/"))
-            return new Path(rootDir + relativePath);
-        return new Path(rootDir + "/" + relativePath);
-    }
-
-    @Override
-    public String getRootDir() {
-        return rootDir;
-    }
-
 }

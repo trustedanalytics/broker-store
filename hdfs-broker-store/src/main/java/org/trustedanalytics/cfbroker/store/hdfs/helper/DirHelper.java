@@ -15,6 +15,7 @@
  */
 package org.trustedanalytics.cfbroker.store.hdfs.helper;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 
@@ -28,6 +29,10 @@ public class DirHelper {
 
     public static String removeTrailingSlashes(String path) {
         return path.replaceFirst("/*$", "");
+    }
+
+    public static String removeLeadingSlashes(String path) {
+        return path.replaceFirst("^/*", "");
     }
 
     public static String addLeadingSlash(String path) {
@@ -49,6 +54,18 @@ public class DirHelper {
             }
         }
         return builder.build();
+    }
+
+    public static String concat(String path1, String path2) {
+        if(Strings.isNullOrEmpty(path2)) {
+            return path1;
+        }
+        if(Strings.isNullOrEmpty(path1)) {
+            return path2;
+        }
+        path1 = removeTrailingSlashes(path1);
+        path2 = removeLeadingSlashes(path2);
+        return path1 + "/" + path2;
     }
 
 }

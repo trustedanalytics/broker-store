@@ -39,9 +39,10 @@ import static org.mockito.Mockito.when;
 public class XAttrsHdfsStoreTest {
 
     private static final String ATTR = "user.String";
+    private static final String METADATA_PATH = "/org/id/brokers/metadata";
 
     @Mock
-    private ChrootedHdfsClient hdfs;
+    private HdfsClient hdfs;
 
     @Mock
     private RepositorySerializer<String> serializer;
@@ -53,7 +54,7 @@ public class XAttrsHdfsStoreTest {
 
     @Before
     public void setup() throws IOException {
-        store = new XAttrsHdfsStore<>(hdfs, serializer, deserializer, ATTR);
+        store = new XAttrsHdfsStore<>(hdfs, serializer, deserializer, ATTR, METADATA_PATH);
     }
 
     @Test
@@ -61,8 +62,8 @@ public class XAttrsHdfsStoreTest {
         String testedObject = "junit";
         when(serializer.serialize(testedObject)).thenReturn(testedObject.getBytes());
         store.save(Location.newInstance("id"), testedObject);
-        verify(hdfs).createDir("/id");
-        verify(hdfs).addPathAttr("/id", ATTR, testedObject.getBytes());
+        verify(hdfs).createDir(METADATA_PATH + "/id");
+        verify(hdfs).addPathAttr(METADATA_PATH + "/id", ATTR, testedObject.getBytes());
     }
 
     @Test
@@ -70,14 +71,14 @@ public class XAttrsHdfsStoreTest {
         String testedObject = "junit";
         when(serializer.serialize(testedObject)).thenReturn(testedObject.getBytes());
         store.save(Location.newInstance("id", "path"), testedObject);
-        verify(hdfs).createDir("/path/id");
-        verify(hdfs).addPathAttr("/path/id", ATTR, testedObject.getBytes());
+        verify(hdfs).createDir(METADATA_PATH + "/path/id");
+        verify(hdfs).addPathAttr(METADATA_PATH + "/path/id", ATTR, testedObject.getBytes());
     }
 
     @Test
     public void testGetById_HdfsPathWithAttrExists_returnsDeserializedObject() throws Exception {
         String testedObject = "junit";
-        when(hdfs.getPathAttr("/id", ATTR)).thenReturn(Optional.of(testedObject.getBytes()));
+        when(hdfs.getPathAttr(METADATA_PATH + "/id", ATTR)).thenReturn(Optional.of(testedObject.getBytes()));
         when(deserializer.deserialize(testedObject.getBytes())).thenReturn(
             new String(testedObject.getBytes()));
         assertThat(store.getById(Location.newInstance("id")).get(), equalTo(testedObject));
@@ -86,7 +87,7 @@ public class XAttrsHdfsStoreTest {
     @Test
     public void testGetByIdWithParent_HdfsPathWithAttrExists_returnsDeserializedObject() throws Exception {
         String testedObject = "junit";
-        when(hdfs.getPathAttr("/path/id", ATTR)).thenReturn(Optional.of(testedObject.getBytes()));
+        when(hdfs.getPathAttr(METADATA_PATH + "/path/id", ATTR)).thenReturn(Optional.of(testedObject.getBytes()));
         when(deserializer.deserialize(testedObject.getBytes())).thenReturn(
             new String(testedObject.getBytes()));
         assertThat(store.getById(Location.newInstance("id", "path")).get(),
@@ -95,46 +96,46 @@ public class XAttrsHdfsStoreTest {
 
     @Test
     public void testGetById_HdfsPathWithoutAttrExists_returnsOptionalEmpty() throws Exception {
-        when(hdfs.getPathAttr("/id", ATTR)).thenReturn(Optional.empty());
+        when(hdfs.getPathAttr(METADATA_PATH + "/id", ATTR)).thenReturn(Optional.empty());
         assertFalse(store.getById(Location.newInstance("id")).isPresent());
     }
 
     @Test(expected = IOException.class)
     public void testGetById_hdfsThrowsException_rethrowsException() throws Exception {
-        when(hdfs.getPathAttr("/nonexistent", ATTR)).thenThrow(new IOException());
+        when(hdfs.getPathAttr(METADATA_PATH + "/nonexistent", ATTR)).thenThrow(new IOException());
         store.getById(Location.newInstance("nonexistent"));
     }
 
     @Test
     public void testDeleteById_HdfsPathWithAttrExists_returnsDeserializedObject() throws Exception {
         String testedObject = "junit";
-        when(hdfs.getPathAttr("/id", ATTR)).thenReturn(Optional.of(testedObject.getBytes()));
+        when(hdfs.getPathAttr(METADATA_PATH + "/id", ATTR)).thenReturn(Optional.of(testedObject.getBytes()));
         when(deserializer.deserialize(testedObject.getBytes())).thenReturn(
             new String(testedObject.getBytes()));
         assertThat(store.deleteById(Location.newInstance("id")).get(), equalTo(testedObject));
-        verify(hdfs).deleteById("/id");
+        verify(hdfs).deleteById(METADATA_PATH + "/id");
     }
 
     @Test
     public void testDeleteByIdWithParent_HdfsPathWithAttrExists_returnsDeserializedObject() throws Exception {
         String testedObject = "junit";
-        when(hdfs.getPathAttr("/path/id", ATTR)).thenReturn(Optional.of(testedObject.getBytes()));
+        when(hdfs.getPathAttr(METADATA_PATH + "/path/id", ATTR)).thenReturn(Optional.of(testedObject.getBytes()));
         when(deserializer.deserialize(testedObject.getBytes())).thenReturn(
             new String(testedObject.getBytes()));
         assertThat(store.deleteById(Location.newInstance("id", "path")).get(),
             equalTo(testedObject));
-        verify(hdfs).deleteById("/path/id");
+        verify(hdfs).deleteById(METADATA_PATH + "/path/id");
     }
 
     @Test
     public void testDeleteById_HdfsPathWithoutAttrExists_returnsOptionalEmpty() throws Exception {
-        when(hdfs.getPathAttr("/id", ATTR)).thenReturn(Optional.empty());
+        when(hdfs.getPathAttr(METADATA_PATH + "/id", ATTR)).thenReturn(Optional.empty());
         assertFalse(store.deleteById(Location.newInstance("id")).isPresent());
     }
 
     @Test(expected = IOException.class)
     public void testDeleteById_hdfsThrowsException_rethrowsException() throws Exception {
-        when(hdfs.getPathAttr("/nonexistent", ATTR)).thenThrow(new IOException());
+        when(hdfs.getPathAttr(METADATA_PATH + "/nonexistent", ATTR)).thenThrow(new IOException());
         store.deleteById(Location.newInstance("/nonexistent"));
     }
 }
