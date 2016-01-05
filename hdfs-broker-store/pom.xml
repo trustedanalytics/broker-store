@@ -14,6 +14,12 @@
         <jacoco-measurement-lines>0.6326</jacoco-measurement-lines>
         <jacoco-measurement-classes>1.0000</jacoco-measurement-classes>
     </properties>
+    <repositories>
+        <repository>
+            <id>cloudera</id>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>org.trustedanalytics.servicebroker.repository</groupId>
