@@ -3,22 +3,22 @@
     <parent>
         <artifactId>broker-store</artifactId>
         <groupId>org.trustedanalytics.servicebroker.repository</groupId>
-        <version>0.5.6</version>
+        <version>0.5.7</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hdfs-broker-store</artifactId>
     <properties>
         <cdhVersion>2.5.0-cdh5.3.2</cdhVersion>
-        <jacoco-measurement-instructions>0.6257</jacoco-measurement-instructions>
+        <jacoco-measurement-instructions>0.5702</jacoco-measurement-instructions>
         <jacoco-measurement-branches>0.5000</jacoco-measurement-branches>
-        <jacoco-measurement-lines>0.6326</jacoco-measurement-lines>
-        <jacoco-measurement-classes>1.0000</jacoco-measurement-classes>
+        <jacoco-measurement-lines>0.5714</jacoco-measurement-lines>
+        <jacoco-measurement-classes>0.7500</jacoco-measurement-classes>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.trustedanalytics.servicebroker.repository</groupId>
             <artifactId>broker-store-commons</artifactId>
-            <version>0.5.6</version>
+            <version>0.5.7</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>

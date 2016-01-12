@@ -28,11 +28,9 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import com.google.common.base.Preconditions;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.util.Base64;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -45,7 +43,7 @@ public final class HadoopZipConfiguration implements HadoopConfiguration {
 
   private final Map<String, String> configParams;
 
-  private HadoopZipConfiguration(String encodedZip) throws IOException, ConfigurationException{
+  private HadoopZipConfiguration(String encodedZip) throws IOException {
     this.encodedZip = encodedZip;
     try {
       this.configParams = getAsMap();
@@ -54,23 +52,25 @@ public final class HadoopZipConfiguration implements HadoopConfiguration {
     }
   }
 
-  public static HadoopZipConfiguration createHadoopZipConfiguration(String encodedZip)
-      throws IOException, ConfigurationException {
+  public static HadoopZipConfiguration createHadoopZipConfiguration(String encodedZip) throws IOException {
     return new HadoopZipConfiguration(encodedZip);
   }
 
+  @Override
   public Configuration getAsHadoopConfiguration() {
     Configuration configuration = new Configuration();
-    configParams.entrySet().forEach((pair) -> configuration.set(pair.getKey(), pair.getValue()));
+    configParams.entrySet().forEach(pair -> configuration.set(pair.getKey(), pair.getValue()));
     return configuration;
   }
 
+  @Override
   public ImmutableMap getBrokerCredentials() {
     return ImmutableMap.of(ConfigConstants.HADOOP_CONFIG_KEY_VALUE, ImmutableMap.copyOf(configParams),
         ConfigConstants.HADOOP_CONFIG_ZIP_VALUE, ImmutableMap.of(ConfigConstants.DESCRIPTION_KEY,
             ConfigConstants.DESCRIPTION, ConfigConstants.ZIP, encodedZip));
   }
 
+  @Override
   public Map<String, String> getAsParameterMap() {
     return configParams;
   }
