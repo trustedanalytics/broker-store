@@ -98,21 +98,19 @@ public class SimpleHdfsClient implements HdfsClient {
     }
 
     @Override
-    public void createEncryptedZone(String path) throws IOException {
-        Path p = getNormalizedPath(path);
-        if(fs.exists(p)){
+    public void createKeyAndEncryptedZone(String keyName, Path path) throws IOException {
+        if(fs.exists(path)){
             try {
-                createEncryptionZoneKey(path);
+                createEncryptionZoneKey(keyName);
             } catch (NoSuchAlgorithmException e) {
-                fs.delete(p, true);
-                throw new IOException("Error while creating encryption dir: " + p, e);
+                fs.delete(path, true);
+                throw new IOException("Error while creating encryption dir: " + path, e);
             }
 
             DistributedFileSystem dfs = (DistributedFileSystem)fs;
-            dfs.createEncryptionZone(p, path);
-        }
-        else {
-            throw new IOException("Directory not exists : " + p);
+            dfs.createEncryptionZone(path, keyName);
+        } else {
+            throw new IOException("Directory doesn't exists : " + path);
         }
     }
 

@@ -15,6 +15,8 @@
  */
 package org.trustedanalytics.cfbroker.store.hdfs.service;
 
+import org.apache.hadoop.fs.Path;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +30,13 @@ public interface HdfsClient {
 
     void createDir(String path) throws IOException;
 
-    void createEncryptedZone(String path) throws IOException;
+  /**
+   * Creates key and encrypted zone using that key.
+   * @param keyName - name of the encryption key
+   * @param path - path denoting directory that will be encrypted
+   * @throws IOException
+   */
+    void createKeyAndEncryptedZone(String keyName, Path path) throws IOException;
 
     void createEmptyFile(String path) throws IOException;
 
