@@ -21,6 +21,7 @@ import org.apache.hadoop.crypto.key.KeyProviderFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +86,7 @@ public class SimpleHdfsClient implements HdfsClient {
     @Override
     public void createDir(String path) throws IOException {
         Path p = getNormalizedPath(path);
-        LOGGER.info(String.format("Creating directory: %s", p));
+        LOGGER.info("Creating directory: " + p);
 
         if(fs.exists(p)) {
             LOGGER.info("Path already exists, nothing to create: " + p);
@@ -95,6 +96,18 @@ public class SimpleHdfsClient implements HdfsClient {
         fs.mkdirs(p);
         if (!fs.exists(p))
             throw new IOException("The dir has not ben created: " + p);
+    }
+
+    @Override
+    public void setPermission(String path, FsPermission fsPermission) throws IOException {
+        Path p = getNormalizedPath(path);
+        LOGGER.info("Changing directory permissions: " + p);
+
+        if(!fs.exists(p)) {
+            throw new IOException("Directory doesn't exists : " + path);
+        }
+
+        fs.setPermission(p, fsPermission);
     }
 
     @Override

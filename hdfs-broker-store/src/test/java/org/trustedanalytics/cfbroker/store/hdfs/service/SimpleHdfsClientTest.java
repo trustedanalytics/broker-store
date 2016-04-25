@@ -20,6 +20,8 @@ import org.apache.hadoop.HadoopIllegalArgumentException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsAction;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.junit.*;
@@ -160,13 +162,13 @@ public class SimpleHdfsClientTest {
         assertFalse(hdfs.getPathAttr("/nonexistent", "user.unknown").isPresent());
     }
 
-
     @Test
     public void testDeleteById_existingPath_deletesPath() throws Exception {
         fs.mkdirs(new Path("/testDir"));
         hdfs.deleteById("testDir");
         assertFalse(fs.exists(new Path("/testDir")));
     }
+
 
     @Test
     public void testDeleteById_existingPathWithChild_deletesPath() throws Exception {
@@ -229,6 +231,25 @@ public class SimpleHdfsClientTest {
         fs.createNewFile(new Path("/newFile"));
         List<byte[]> attrs = hdfs.getDirectSubPathsAttrs("newFile", "user.nonexistent");
         assertTrue(attrs.isEmpty());
+    }
+
+    @Test
+    public void testSetPermission_directoryCreated_PermissionsChanged() throws Exception {
+        hdfs.createDir("/testDir");
+        Path dirPath = new Path("/testDir");
+        FsPermission fsPermission = new FsPermission(FsAction.NONE, FsAction.NONE, FsAction.NONE);
+        hdfs.setPermission("/testDir", fsPermission);
+        assertTrue("Dir was not created", fs.exists(dirPath));
+        assertTrue("Created path is not a directory", fs.isDirectory(dirPath));
+        assertTrue("Wrong permissions for created directory", fs.getFileStatus(dirPath)
+            .getPermission().equals(fsPermission));
+    }
+
+    @Test(expected = IOException.class)
+    public void testSetPermission_directoryNotExsits_throwsIOException() throws Exception {
+        Path dirPath = new Path("/testDir");
+        FsPermission fsPermission = new FsPermission(FsAction.NONE, FsAction.NONE, FsAction.NONE);
+        hdfs.setPermission("/testDir", fsPermission);
     }
 
 }
