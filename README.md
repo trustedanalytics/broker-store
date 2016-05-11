@@ -1,3 +1,5 @@
+[![Dependency Status](https://www.versioneye.com/user/projects/5723603aba37ce00350af438/badge.svg?style=flat)](https://www.versioneye.com/user/projects/5723603aba37ce00350af438)
+
 # Cloud Foundry broker metadata repository
 
 Library with storage utils for Cloudfoundry broker development.
