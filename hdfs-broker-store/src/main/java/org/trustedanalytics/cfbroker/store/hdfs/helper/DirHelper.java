@@ -63,9 +63,7 @@ public class DirHelper {
         if(Strings.isNullOrEmpty(path1)) {
             return path2;
         }
-        path1 = removeTrailingSlashes(path1);
-        path2 = removeLeadingSlashes(path2);
-        return path1 + "/" + path2;
+        return removeTrailingSlashes(path1) + "/" + removeLeadingSlashes(path2);
     }
 
 }

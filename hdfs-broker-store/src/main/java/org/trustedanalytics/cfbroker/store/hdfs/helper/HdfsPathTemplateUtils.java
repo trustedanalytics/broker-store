@@ -16,7 +16,6 @@
 package org.trustedanalytics.cfbroker.store.hdfs.helper;
 
 import org.apache.commons.lang.text.StrSubstitutor;
-import org.trustedanalytics.cfbroker.store.hdfs.helper.DirHelper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,10 +25,10 @@ import java.util.stream.Collectors;
 
 public class HdfsPathTemplateUtils {
 
-    private HdfsPathTemplateUtils() {}
+    public static final String VARIABLE_PREFIX = "%{";
+    public static final String VARIABLE_SUFIX = "}";
 
-    public static String VARIABLE_PREFIX = "%{";
-    public static String VARIABLE_SUFIX = "}";
+    private HdfsPathTemplateUtils() {}
 
     public static String fill(String path, UUID instanceId, UUID orgId) {
         return fill(path, Optional.ofNullable(instanceId).map(UUID::toString).orElse(null),
