@@ -31,13 +31,16 @@ public interface HdfsClient {
 
     void createDir(String path) throws IOException;
 
+    void setOwner(String path, String owner, String group) throws IOException;
+
     void setPermission(String path, FsPermission fsPermission) throws IOException;
-  /**
-   * Creates key and encrypted zone using that key.
-   * @param keyName - name of the encryption key
-   * @param path - path denoting directory that will be encrypted
-   * @throws IOException
-   */
+
+    /**
+     * Creates key and encrypted zone using that key.
+     * @param keyName - name of the encryption key
+     * @param path - path denoting directory that will be encrypted
+     * @throws IOException
+    */
     void createKeyAndEncryptedZone(String keyName, Path path) throws IOException;
 
     void createEmptyFile(String path) throws IOException;

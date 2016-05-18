@@ -99,6 +99,22 @@ public class SimpleHdfsClient implements HdfsClient {
     }
 
     @Override
+    public void setOwner(String path, String owner, String group) throws IOException {
+        Path p = getNormalizedPath(path);
+        LOGGER.info("Set directory {} owner to: {}", path, owner);
+
+        if(!fs.exists(p)) {
+            throw new IOException("Directory doesn't exists : " + path);
+        }
+
+        fs.setOwner(p, owner, group);
+        String directoryOwner = fs.getFileStatus(p).getOwner();
+        if (!directoryOwner.equals(owner))
+            throw new IOException(String.format("The dir owner hasn't ben changed to: %s - current owner: %s",
+                owner, directoryOwner));
+    }
+
+    @Override
     public void setPermission(String path, FsPermission fsPermission) throws IOException {
         Path p = getNormalizedPath(path);
         LOGGER.info("Changing directory permissions: " + p);

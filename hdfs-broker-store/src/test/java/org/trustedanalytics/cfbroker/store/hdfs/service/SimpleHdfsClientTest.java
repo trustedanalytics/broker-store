@@ -252,4 +252,21 @@ public class SimpleHdfsClientTest {
         hdfs.setPermission("/testDir", fsPermission);
     }
 
+    @Test
+    public void testSetOwner_directoryCreated_OwnerChanged() throws Exception {
+      hdfs.createDir("/testDir");
+      Path dirPath = new Path("/testDir");
+      hdfs.setOwner("/testDir", "hdfs", "supergroup");
+      assertTrue("Dir was not created", fs.exists(dirPath));
+      assertTrue("Created path is not a directory", fs.isDirectory(dirPath));
+      assertTrue("Wrong permissions for created directory", fs.getFileStatus(dirPath).getOwner()
+          .equals("hdfs"));
+    }
+
+    @Test(expected = IOException.class)
+    public void testSetOwner_directoryNotExsits_throwsIOException() throws Exception {
+      Path dirPath = new Path("/testDir");
+      FsPermission fsPermission = new FsPermission(FsAction.NONE, FsAction.NONE, FsAction.NONE);
+      hdfs.setOwner("/testDir", "hdfs", "supergroup");
+    }
 }
