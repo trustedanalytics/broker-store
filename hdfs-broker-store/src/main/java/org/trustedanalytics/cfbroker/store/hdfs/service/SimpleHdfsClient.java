@@ -15,7 +15,12 @@
  */
 package org.trustedanalytics.cfbroker.store.hdfs.service;
 
-import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.apache.hadoop.crypto.key.KeyProvider;
 import org.apache.hadoop.crypto.key.KeyProviderFactory;
 import org.apache.hadoop.fs.FileStatus;
@@ -27,15 +32,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.trustedanalytics.cfbroker.store.hdfs.helper.DirHelper;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.google.common.base.Preconditions;
 
 public class SimpleHdfsClient implements HdfsClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleHdfsClient.class);
+    private static final String DIRECTORY_NOT_EXISTS = "Directory doesn't exists : ";
 
     private final FileSystem fs;
 
@@ -85,17 +87,16 @@ public class SimpleHdfsClient implements HdfsClient {
 
     @Override
     public void createDir(String path) throws IOException {
-        Path p = getNormalizedPath(path);
-        LOGGER.info("Creating directory: " + p);
+        Optional<Path> p = getPathIfNotExsits(path);
+        if(p.isPresent())
+          fs.mkdirs(p.get());
+    }
 
-        if(fs.exists(p)) {
-            LOGGER.info("Path already exists, nothing to create: " + p);
-            return;
-        }
-
-        fs.mkdirs(p);
-        if (!fs.exists(p))
-            throw new IOException("The dir has not ben created: " + p);
+    @Override
+    public void createDir(String path, FsPermission permission) throws IOException {
+      Optional<Path> p = getPathIfNotExsits(path);
+      if(p.isPresent())
+        fs.mkdirs(p.get(), permission);
     }
 
     @Override
@@ -104,7 +105,7 @@ public class SimpleHdfsClient implements HdfsClient {
         LOGGER.info("Set directory {} owner to: {}", path, owner);
 
         if(!fs.exists(p)) {
-            throw new IOException("Directory doesn't exists : " + path);
+            throw new IOException(DIRECTORY_NOT_EXISTS + path);
         }
 
         fs.setOwner(p, owner, group);
@@ -120,7 +121,7 @@ public class SimpleHdfsClient implements HdfsClient {
         LOGGER.info("Changing directory permissions: " + p);
 
         if(!fs.exists(p)) {
-            throw new IOException("Directory doesn't exists : " + path);
+            throw new IOException(DIRECTORY_NOT_EXISTS + path);
         }
 
         fs.setPermission(p, fsPermission);
@@ -139,7 +140,7 @@ public class SimpleHdfsClient implements HdfsClient {
             DistributedFileSystem dfs = (DistributedFileSystem)fs;
             dfs.createEncryptionZone(path, keyName);
         } else {
-            throw new IOException("Directory doesn't exists : " + path);
+            throw new IOException(DIRECTORY_NOT_EXISTS + path);
         }
     }
 
@@ -171,5 +172,16 @@ public class SimpleHdfsClient implements HdfsClient {
 
     private Path getNormalizedPath(String dir) {
         return new Path(DirHelper.addLeadingSlash(DirHelper.removeLeadingSlashes(dir)));
+    }
+
+    private Optional<Path> getPathIfNotExsits(String path) throws IOException {
+      Path p = getNormalizedPath(path);
+      LOGGER.info("Creating directory: " + p);
+
+      if(fs.exists(p)) {
+        LOGGER.info("Path already exists, nothing to create: " + p);
+        return Optional.empty();
+      }
+      return Optional.of(p);
     }
 }

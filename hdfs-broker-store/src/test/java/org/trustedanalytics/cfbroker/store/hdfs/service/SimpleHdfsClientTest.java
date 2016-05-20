@@ -16,23 +16,24 @@
 package org.trustedanalytics.cfbroker.store.hdfs.service;
 
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
 import org.apache.hadoop.HadoopIllegalArgumentException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.junit.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
 
 
 /**
@@ -45,11 +46,13 @@ import static org.junit.Assert.*;
  */
 public class SimpleHdfsClientTest {
 
+    private static final FsPermission fsPermission = new FsPermission(FsAction.NONE, FsAction.NONE, FsAction.NONE);
+
+    private static MiniDFSCluster cluster;
+
     private SimpleHdfsClient hdfs;
 
     private DistributedFileSystem fs;
-
-    private static MiniDFSCluster cluster;
 
     @BeforeClass
     public static void initialize() throws IOException {
@@ -57,6 +60,8 @@ public class SimpleHdfsClientTest {
         FileUtil.fullyDelete(baseDir);
         Configuration conf = new Configuration(false);
         conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, baseDir.getAbsolutePath());
+        conf.setBoolean(DFSConfigKeys.DFS_PERMISSIONS_ENABLED_KEY, true);
+        conf.setBoolean(DFSConfigKeys.DFS_NAMENODE_ACLS_ENABLED_KEY, true);
         MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
         cluster = builder.build();
         cluster.waitClusterUp();
@@ -98,12 +103,33 @@ public class SimpleHdfsClientTest {
     }
 
     @Test
+    public void testCreateDir_alreadyExsits_throwIOException() throws Exception {
+        hdfs.createDir("/testDir");
+        hdfs.createDir("/testDir");
+    }
+
+    @Test
+    public void testCreateDirWithPermissions_absolutePath_dirCreated() throws Exception {
+        Path dirPath = new Path("/testDirPermission");
+        hdfs.createDir("/testDirPermission", fsPermission);
+        assertTrue("Dir was not created", fs.exists(dirPath));
+        assertTrue("Created path is not a directory", fs.isDirectory(dirPath));
+        assertTrue("Wrong permissions for created directory", fs.getFileStatus(dirPath)
+            .getPermission().equals(fsPermission));
+    }
+
+    @Test
+    public void testCreateDirWithPermissions_alreadyExsits_throwIOException() throws Exception {
+        hdfs.createDir("/testDir", fsPermission);
+        hdfs.createDir("/testDir", fsPermission);
+    }
+
+    @Test
     public void testCreateEmptyFile_absolutePath_emptyFileCreated() throws Exception {
         hdfs.createEmptyFile("/testFile");
         Path filePath = new Path("/testFile");
         assertTrue("Empty file was not created", fs.exists(filePath));
         assertTrue("Created path is not a file", fs.isFile(filePath));
-
     }
 
     @Test
@@ -237,7 +263,6 @@ public class SimpleHdfsClientTest {
     public void testSetPermission_directoryCreated_PermissionsChanged() throws Exception {
         hdfs.createDir("/testDir");
         Path dirPath = new Path("/testDir");
-        FsPermission fsPermission = new FsPermission(FsAction.NONE, FsAction.NONE, FsAction.NONE);
         hdfs.setPermission("/testDir", fsPermission);
         assertTrue("Dir was not created", fs.exists(dirPath));
         assertTrue("Created path is not a directory", fs.isDirectory(dirPath));
@@ -248,25 +273,23 @@ public class SimpleHdfsClientTest {
     @Test(expected = IOException.class)
     public void testSetPermission_directoryNotExsits_throwsIOException() throws Exception {
         Path dirPath = new Path("/testDir");
-        FsPermission fsPermission = new FsPermission(FsAction.NONE, FsAction.NONE, FsAction.NONE);
         hdfs.setPermission("/testDir", fsPermission);
     }
 
     @Test
     public void testSetOwner_directoryCreated_OwnerChanged() throws Exception {
-      hdfs.createDir("/testDir");
-      Path dirPath = new Path("/testDir");
-      hdfs.setOwner("/testDir", "hdfs", "supergroup");
-      assertTrue("Dir was not created", fs.exists(dirPath));
-      assertTrue("Created path is not a directory", fs.isDirectory(dirPath));
-      assertTrue("Wrong permissions for created directory", fs.getFileStatus(dirPath).getOwner()
-          .equals("hdfs"));
+        hdfs.createDir("/testDir");
+        Path dirPath = new Path("/testDir");
+        hdfs.setOwner("/testDir", "hdfs", "supergroup");
+        assertTrue("Dir was not created", fs.exists(dirPath));
+        assertTrue("Created path is not a directory", fs.isDirectory(dirPath));
+        assertTrue("Wrong permissions for created directory", fs.getFileStatus(dirPath).getOwner()
+            .equals("hdfs"));
     }
 
     @Test(expected = IOException.class)
     public void testSetOwner_directoryNotExsits_throwsIOException() throws Exception {
-      Path dirPath = new Path("/testDir");
-      FsPermission fsPermission = new FsPermission(FsAction.NONE, FsAction.NONE, FsAction.NONE);
-      hdfs.setOwner("/testDir", "hdfs", "supergroup");
+        Path dirPath = new Path("/testDir");
+        hdfs.setOwner("/testDir", "hdfs", "supergroup");
     }
 }
