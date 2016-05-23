@@ -15,10 +15,17 @@
  */
 package org.trustedanalytics.cfbroker.store.sql.service;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.ResultSet;
+
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class SqlConnectionUtils {
 
@@ -26,22 +33,21 @@ public class SqlConnectionUtils {
 
   private final Map<SqlQueries, PreparedStatement> statementMap;
 
-  private final Connection connection;
+  private final String connectionString;
 
   public SqlConnectionUtils(String connectionString) throws SQLException {
-    this.connection = DriverManager.getConnection(connectionString);
-    this.connection.setAutoCommit(true);
+    this.connectionString = connectionString;
     this.statementMap = createStatementMap();
   }
 
   public void execStatement(String query) throws SQLException {
-    try (Statement statement = connection.createStatement()) {
+    try (Statement statement = getConnection().createStatement()) {
       statement.execute(query);
     }
   }
 
   public void execInsertService(SqlQueries statement, String id, byte[] data) throws SQLException {
-    try (PreparedStatement preparedStatement = statementMap.get(statement)) {
+    try (PreparedStatement preparedStatement = resolveStatement(statement)) {
       preparedStatement.setString(1, id);
       preparedStatement.setBytes(2, data);
       preparedStatement.executeUpdate();
@@ -50,7 +56,7 @@ public class SqlConnectionUtils {
 
   public void execInsertBinding(SqlQueries statement, String serviceId, String bindingId,
       byte[] data) throws SQLException {
-    try (PreparedStatement preparedStatement = statementMap.get(statement)) {
+    try (PreparedStatement preparedStatement = resolveStatement(statement)) {
       preparedStatement.setString(1, serviceId);
       preparedStatement.setString(2, bindingId);
       preparedStatement.setBytes(3, data);
@@ -60,22 +66,21 @@ public class SqlConnectionUtils {
 
   public byte[] execSelectObject(SqlQueries statement, List<String> parameters)
       throws SQLException {
-    try (PreparedStatement preparedStatement = statementMap.get(statement)) {
+    try (PreparedStatement preparedStatement = resolveStatement(statement)) {
       setStatementParameters(preparedStatement, parameters);
-      ResultSet result = preparedStatement.executeQuery();
-
-      byte[] data = null;
-      if (result.next()) {
-        data = result.getBytes(DATA_COLUMN);
+      try (ResultSet result = preparedStatement.executeQuery()) {
+        byte[] data = null;
+        if (result.next()) {
+          data = result.getBytes(DATA_COLUMN);
+        }
+        return data;
       }
-
-      return data;
     }
   }
 
   public void execDeleteStatement(SqlQueries statement, List<String> parameters)
       throws SQLException {
-    try (PreparedStatement preparedStatement = statementMap.get(statement)) {
+    try (PreparedStatement preparedStatement = resolveStatement(statement)) {
       setStatementParameters(preparedStatement, parameters);
       preparedStatement.executeUpdate();
     }
@@ -95,8 +100,19 @@ public class SqlConnectionUtils {
   private Map<SqlQueries, PreparedStatement> createStatementMap() throws SQLException {
     Map<SqlQueries, PreparedStatement> map = new EnumMap<>(SqlQueries.class);
     for (SqlQueries query : SqlQueries.values()) {
-      map.put(query, connection.prepareStatement(query.getQuery()));
+      map.put(query, getConnection().prepareStatement(query.getQuery()));
     }
     return map;
+  }
+
+  private PreparedStatement resolveStatement(SqlQueries statement) {
+    return Objects.requireNonNull(statementMap.get(statement), "Statement returns null: " + statement);
+  }
+
+  private Connection getConnection() throws SQLException {
+    try (Connection connection = DriverManager.getConnection(connectionString)) {
+      connection.setAutoCommit(true);
+      return connection;
+    }
   }
 }
