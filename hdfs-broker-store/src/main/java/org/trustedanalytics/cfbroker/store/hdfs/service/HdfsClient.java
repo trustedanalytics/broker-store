@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.AclEntry;
 import org.apache.hadoop.fs.permission.FsPermission;
 
 public interface HdfsClient {
@@ -32,6 +33,8 @@ public interface HdfsClient {
     void createDir(String path) throws IOException;
 
     void createDir(String path, FsPermission permission) throws IOException;
+
+    void addAclEntry(String path, AclEntry aclEntry) throws IOException;
 
     void setOwner(String path, String owner, String group) throws IOException;
 

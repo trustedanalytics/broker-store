@@ -50,6 +50,12 @@ public class CuratorBasedZookeeperClient implements ZookeeperClient {
         return rootDirectory;
     }
 
+    @Override public boolean exists(String path) throws IOException {
+        String effectivePath = makePath(path);
+        return propagateAsIOException(() -> Optional.ofNullable(client.checkExists().forPath(effectivePath)).isPresent(),
+            LOGGER::warn, "Error while check znode: " + effectivePath);
+    }
+
     @Override public void addZNode(String path, byte[] zNodeContent) throws IOException {
         String effectivePath = makePath(path);
         propagateAsIOException(

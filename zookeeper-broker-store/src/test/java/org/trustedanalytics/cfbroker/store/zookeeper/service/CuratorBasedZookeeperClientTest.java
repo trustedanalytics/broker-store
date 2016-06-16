@@ -15,21 +15,18 @@
  */
 package org.trustedanalytics.cfbroker.store.zookeeper.service;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.*;
+
+import java.io.IOException;
+
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.data.Stat;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.io.IOException;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CuratorBasedZookeeperClientTest {
@@ -123,4 +120,32 @@ public class CuratorBasedZookeeperClientTest {
 
         client.getChildrenNames();
     }
+
+    @Test
+    public void checkIfExists_notExists_returnFalse() throws Exception {
+        String path = ROOT_DIRECTORY + "/" + TEST_PATH;
+        when(curatorClient.checkExists().forPath(path)).thenReturn(null);
+
+        boolean result = client.exists(TEST_PATH);
+        assertThat(result, equalTo(false));
+    }
+
+    @Test
+    public void checkIfExists_exists_returnTrue() throws Exception {
+      String path = ROOT_DIRECTORY + "/" + TEST_PATH;
+      Stat testObjectStat = new Stat();
+      when(curatorClient.checkExists().forPath(path)).thenReturn(testObjectStat);
+
+      boolean result = client.exists(TEST_PATH);
+      assertThat(result, equalTo(true));
+    }
+
+    @Test(expected = IOException.class)
+    public void checkIfExists_throwException_shouldPropagateAsIOException() throws Exception {
+      String path = ROOT_DIRECTORY + "/" + TEST_PATH;
+      when(curatorClient.checkExists().forPath(path)).thenThrow(new Exception());
+
+      boolean result = client.exists(TEST_PATH);
+    }
+
 }

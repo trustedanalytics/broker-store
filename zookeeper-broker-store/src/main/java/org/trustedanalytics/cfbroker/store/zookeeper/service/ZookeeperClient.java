@@ -26,6 +26,8 @@ public interface ZookeeperClient {
 
     String getRootDir();
 
+    boolean exists(String path) throws IOException;
+
     void addZNode(String path, byte[] zNodeContent) throws IOException;
 
     byte[] getZNode(String path) throws IOException;

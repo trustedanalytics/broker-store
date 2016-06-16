@@ -18,6 +18,7 @@ package org.trustedanalytics.cfbroker.store.hdfs.service;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +27,7 @@ import org.apache.hadoop.crypto.key.KeyProviderFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.AclEntry;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.slf4j.Logger;
@@ -97,6 +99,17 @@ public class SimpleHdfsClient implements HdfsClient {
       Optional<Path> p = getPathIfNotExsits(path);
       if(p.isPresent())
         fs.mkdirs(p.get(), permission);
+    }
+
+    @Override
+    public void addAclEntry(String path, AclEntry aclEntry) throws IOException {
+        Path p = new Path(path);
+        LOGGER.info("Add Acl to directory {} {}", path, aclEntry);
+
+        if(!fs.exists(p)) {
+          throw new IOException(DIRECTORY_NOT_EXISTS + path);
+        }
+        fs.modifyAclEntries(p, Arrays.asList(aclEntry));
     }
 
     @Override
