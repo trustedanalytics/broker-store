@@ -141,6 +141,28 @@ public class SimpleHdfsClient implements HdfsClient {
     }
 
     @Override
+    public List<String> listFiles(String path, boolean recursive) throws IOException {
+        List<String> files = new ArrayList<>();
+        FileStatus statuses[] = fs.listStatus(new Path(path));
+
+        for(FileStatus status: statuses) {
+            files.add(status.getPath().toString());
+            if(status.isDirectory() && recursive)
+                files.addAll(listFiles(status.getPath().toString(), recursive));
+        }
+
+        return files;
+    }
+
+    @Override public boolean isDirectory(String path) throws IOException {
+        return fs.isDirectory(new Path(path));
+    }
+
+    @Override public boolean isFile(String path) throws IOException {
+        return fs.isFile(new Path(path));
+    }
+
+    @Override
     public void createKeyAndEncryptedZone(String keyName, Path path) throws IOException {
         if(fs.exists(path)){
             try {

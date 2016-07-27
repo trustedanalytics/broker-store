@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.AclEntry;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -39,6 +40,12 @@ public interface HdfsClient {
     void setOwner(String path, String owner, String group) throws IOException;
 
     void setPermission(String path, FsPermission fsPermission) throws IOException;
+
+    List<String> listFiles(String path, boolean recursive) throws IOException;
+
+    boolean isDirectory(String path) throws IOException;
+
+    boolean isFile(String path) throws IOException;
 
     /**
      * Creates key and encrypted zone using that key.
