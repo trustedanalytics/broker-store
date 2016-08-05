@@ -143,7 +143,7 @@ public class SimpleHdfsClient implements HdfsClient {
     @Override
     public List<String> listFiles(String path, boolean recursive) throws IOException {
         List<String> files = new ArrayList<>();
-        FileStatus statuses[] = fs.listStatus(new Path(path));
+        FileStatus[] statuses = fs.listStatus(new Path(path));
 
         for(FileStatus status: statuses) {
             files.add(status.getPath().toString());
