@@ -21,6 +21,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.ACLProvider;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.ACL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Optional;
 
 public class ZookeeperClientBuilder {
 
@@ -38,6 +40,7 @@ public class ZookeeperClientBuilder {
     private final String password;
     private final String rootDirectory;
     private RetryPolicy retryPolicy;
+    private List<ACL> rootAcl;
 
     public ZookeeperClientBuilder(String zookeeperConnectionString, String username,
         String password, String rootDirectory) throws IOException {
@@ -60,13 +63,31 @@ public class ZookeeperClientBuilder {
         return this;
     }
 
+    public ZookeeperClientBuilder withRootCreation(List<ACL> rootAcl) {
+        this.rootAcl = rootAcl;
+        return this;
+    }
+
     public ZookeeperClient build() throws IOException {
+        if(rootAcl != null) {
+            this.createRootPath(rootAcl);
+        }
         CuratorFramework client = buildCuratorClient(new ConstACLProvider(getRootACLs()));
         return new CuratorBasedZookeeperClient(client, rootDirectory);
     }
 
-    private List<ACL> getRootACLs() throws IOException {
+    private void createRootPath(List<ACL> aclList) throws IOException {
+        CuratorFramework client = buildCuratorClient();
+        client.start();
 
+        CuratorExceptionHandler.propagateAsIOException(
+            () -> createRootDirWithAcl(client, aclList),
+            LOGGER::error, "Can't create: " + rootDirectory + " as root directory");
+
+        client.close();
+    }
+
+    private List<ACL> getRootACLs() throws IOException {
         CuratorFramework client = buildCuratorClient();
         client.start();
 
@@ -81,6 +102,16 @@ public class ZookeeperClientBuilder {
         client.close();
 
         return aclList;
+    }
+
+    private Void createRootDirWithAcl(CuratorFramework client, List<ACL> aclList) throws Exception {
+        try {
+            client.create().creatingParentsIfNeeded().forPath(rootDirectory);
+        } catch (KeeperException.NodeExistsException e) {
+            LOGGER.info("Znode " + rootDirectory + " already exists");
+        }
+        client.setACL().withACL(aclList).forPath(rootDirectory);
+        return null;
     }
 
     private Void checkIfRootDirectoryExists(CuratorFramework client) throws Exception {
